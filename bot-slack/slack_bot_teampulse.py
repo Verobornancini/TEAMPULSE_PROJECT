@@ -46,7 +46,7 @@ try:
     print('STEP 2: Import own developed library')
     #CLIENT = os.getenv('CLIENT_NAME')
     secret=''    
-    CLIENT = 'bitlogic'
+    CLIENT = '' # set the client name before run the script
     logging.info(f'---> CLIENTE= {CLIENT}')
     print(f'---> CLIENTE= {CLIENT}')
     secret_name = f'slack_{CLIENT}'
