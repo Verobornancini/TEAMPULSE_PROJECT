@@ -1,7 +1,7 @@
 # SLACK - BOT: TeamPulse V 1.0
-# Data analysis process: 02_Data_Analysis
+# Proceso de análisis de datos: 02_Data_Analysis
 
-# Import necessary libraries
+# Importación de librerías necesarias
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -39,40 +39,37 @@ print('----------------------------------------------------')
 print('Inicia el proceso de análisis de datos (#02)')
 print('----------------------------------------------------')
 
-# 1) Reading environment variables:
 print('PASO 1: Cargamos las variables de entorno')
-# from the environment 
 CLIENT = os.getenv('CLIENT_NAME')
 print('------> CLIENTE:', CLIENT)
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-# Create s3 object (This is how we access non public buckets and objets, i.e. files)
+# Creación del objeto S3
 s3 = boto3.resource('s3', aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-# from .json file created whith Secrets Manager client for Google credentials / Service Account
+
+# Variables de entorno obtenidas desde el archivo .json creado con Secrets Manager client de Google credentials / Service Account
 CREDENTIALS = 'credentials.json'
-service_account_info = get_secret('google_bitlogic')
-#service_account_info = get_secret('google_%s' % CLIENT)
+service_account_info = get_secret('google_%s' % CLIENT)
 with open(CREDENTIALS, 'w') as fp:
     json.dump(service_account_info, fp)
-# from .json file created whith Secrets Manager client for Google client_secrets / ID Oauth Client
+
+# Variables de entorno obtenidas desde el archivo .json creado con Secrets Manager client de Google client_secrets / ID Oauth Client
 GOOGLE_DRIVE= 'client_secrets.json'
-drive_account_info = get_secret('drive_bitlogic')
-#drive_account_info = get_secret('drive_%s' % CLIENT)
+drive_account_info = get_secret('drive_%s' % CLIENT)
 with open(GOOGLE_DRIVE, 'w') as fp:
     tu_dict = drive_account_info
     web_dict = {"web": tu_dict} 
     json.dump(web_dict, fp) 
-# from .txt file created whith Secrets Manager client for Google client_secrets / ID Oauth Client
+    
+# Variables de entorno obtenidas desde el archivo .txt creado con Secrets Manager client de Google client_secrets / ID Oauth Client
 AUTHORIZE_CREDENTIALS= 'GoogleDriveCredentials.txt'
-drive_credentials = get_secret('drive_credentials_bitlogic')
-# drive_credentials = get_secret('drive_credentials_%s' % CLIENT)
+drive_credentials = get_secret('drive_credentials_%s' % CLIENT)
 with open(AUTHORIZE_CREDENTIALS, 'w') as fp:
     json.dump(drive_credentials, fp)
 
-# 2) Automatic Authentication for google drive
 print('PASO 2: Autenticación con Google Drive')
 gauth = GoogleAuth()
-# Try to load saved client credentials
+# Load client credentials
 gauth.LoadCredentialsFile(AUTHORIZE_CREDENTIALS)
 if gauth.credentials is None:
     # Authenticate if they're not there
@@ -88,9 +85,8 @@ else:
 gauth.SaveCredentialsFile(AUTHORIZE_CREDENTIALS)
 drive = GoogleDrive(gauth)
 
-# 3) Navigation in google drive folders
 print('PASO 3: Auto-iteracion en las carpetas de Google Drive')
-# Auto-iterate through all folders that matches this query
+# Autoiteración en las carpetas que matchean con la sigueinte query
 drive_folder_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
 folder_ID=''
 client_name=''      
@@ -100,10 +96,9 @@ for folder in drive_folder_list:
     if folder['title'] == CLIENT:
         folder_ID = folder['id']
         client_name = folder['title']    
-print('------> Accedemos al folder del cliente: bitlogic')
-#print('------> Accedemos al folder del cliente: %s' % client_name)
+print('------> Accedemos al folder del cliente: %s' % client_name)
 
-# Auto-iterate through all sub-folders that matches this query
+# Autoiteración en las carpetas que matchean con la sigueinte query
 sub_folder_List = drive.ListFile({'q': "'%s' in parents and trashed=false" % folder_ID}).GetList()
 sub_folder_ID=''
 ANALYTICS_FOLDER=''
@@ -116,7 +111,7 @@ for sub_folder in sub_folder_List:
         ANALYTICS_MODIFY_DATE = sub_folder['modifiedByMeDate']      
 print('------> Accedemos al sub_folder: %s' % ANALYTICS_FOLDER)  
 
-# Auto-iterate through all files that matches this query
+# Autoiteración en las carpetas que matchean con la sigueinte query
 file_List = drive.ListFile({'q': "'%s' in parents and trashed=false" % sub_folder_ID}).GetList()
 URL_NOTE_GLOBAL_POLARITY=''
 URL_MESSAGES_BY_CHANNEL=''
@@ -182,7 +177,6 @@ for file in file_List:
         URL_TOP_5_REACTIONS=file['alternateLink']
         GSHEETS_TOP_5_REACTIONS=file['id']
 
-# 4) Download the dataset from the url where it is hosted
 print('PASO 4: Obtenición del dataset de mensajes')
 bucketName = "%s-bot" % CLIENT
 # historial_de_mensajes.csv
@@ -194,15 +188,15 @@ fileName_2 = "%s_channels.csv" % CLIENT
 s3.Bucket(bucketName).download_file(fileName_2, fileName_2) 
 df_channels = pd.read_csv(fileName_2)
 df_channels.drop(df_channels.columns[df_channels.columns.str.contains('Unnamed',case = False)],axis = 1, inplace = True)
-# merge the two dataframes to obtain the channel_name variable
+# merge de ambos dataframes para obtener la variable "channel_name"
 df= pd.merge(df_history, df_channels, on='Channel_id')
 
 ########################################################################################################################################
 #                                            PLOTTING GENERAL VISUALIZATIONS
 ########################################################################################################################################
-# 5) Plotting
+
 print('PASO 5: Generación de visualizaciones')
-# Setting the Persistence of the plots in s3
+# Seteo la persistencia de los plots creados en S3
 bucketName = "%s-bot" % CLIENT
 
 # bar_chart
@@ -232,9 +226,8 @@ s3.Bucket(bucketName).upload_file('plot_2.png','plots/plot_2.png')
 ########################################################################################################################################
 #                                            PLOTTING SENTIMENT ANALYSIS
 ########################################################################################################################################
+
 # Plotting Sentiment analysis of messages in English
-# Polarity and subjectivity graphs will be made taking into account the translated messages, 
-# since these indices are calculated from the messages in English.
 print('------> 3-Plot')
 translated = df[(df.translations != "A")]
 plt.figure (figsize=(8,4))
@@ -303,7 +296,7 @@ s3.Bucket(bucketName).upload_file('plot_7.png','plots/plot_7.png')
 ########################################################################################################################################
 #                                            GETTING/PLOTTING REACTIONS & EMOJIS
 ########################################################################################################################################
-# 6) Getting Reactions from messages
+
 print('PASO 6: Obtención de las Reacciones de los mensajes')
 df_reactions = df.dropna(subset=['reactions'])
 df_reactions.reset_index(inplace=True,drop=True)
@@ -324,7 +317,6 @@ for i, message in df_reactions.iterrows():
         quantity= reac['count']
         table_reactions.loc[i]=[channel_name,message_date,index_message_date,reaction,quantity, polarity, subjectivity,classification]
 
-# 7) Getting Emojis from messages
 print('PASO 7: Obtención de los Emojis de los mensajes')
 # Filtering the dataset to get only messages containing emojis
 df_emojis = df[df['text'].str.contains(":[^:\s]*(?:::[^:\s]*)*:", case=False)]
@@ -453,7 +445,7 @@ s3.Bucket(bucketName).upload_file('plot_13.png','plots/plot_13.png')
 ########################################################################################################################################
 #                                            NLP ANALYSIS
 ########################################################################################################################################
-# 8) Text Analysis - NLP
+
 print('PASO 8: Análisis de textos - NLP')
 # Generation of subset from original dataframe
 POS = df['classification'] == 'POS'
@@ -551,7 +543,6 @@ POS_tokens_clean_str=str(POS_tokens_clean)
 NEG_freq_clean = nltk.FreqDist(NEG_tokens_clean)
 NEG_tokens_clean_str=str(NEG_tokens_clean)
 
-# A) GLOBAL ANALYSIS
 print('------> A) Análisis global')
 # Set the stopwords
 stopwords = set(line.strip() for line in open('todos_los_textos.csv', 'r',encoding="utf8"))
@@ -587,7 +578,6 @@ plt.axis("off")
 wordcloud.to_file('plot_14.png')
 s3.Bucket(bucketName).upload_file('plot_14.png','plots/plot_14.png')
 
-# B) POSITIVE ANALYSIS
 print('------> B) Análisis mensajes positivos')
 # Set the stopwords
 stopwords = set(line.strip() for line in open('todos_los_textos_POS.csv', 'r',encoding="utf8"))
@@ -623,7 +613,6 @@ plt.axis("off")
 wordcloud.to_file('plot_15.png')
 s3.Bucket(bucketName).upload_file('plot_15.png','plots/plot_15.png')
 
-# C) NEGATIVE ANALYSIS
 print('------> C) Análisis mensajes negativos')
 # Set the stopwords
 stopwords = set(line.strip() for line in open('todos_los_textos_NEG.csv', 'r',encoding="utf8"))
@@ -662,7 +651,7 @@ s3.Bucket(bucketName).upload_file('plot_16.png','plots/plot_16.png')
 ########################################################################################################################################
 #                                            GOOGLE SHEETS INTEGRATION
 ########################################################################################################################################
-# 9) Integration to Google Sheets
+
 print('PASO 9: Integrando resultados en google-sheets')
 # BEFORE INTEGRATION TO GOOGLE SHEETS:   
 # * Find the  client_email inside credentials.json.      
@@ -673,7 +662,6 @@ print('PASO 9: Integrando resultados en google-sheets')
 # we used to take folders variables from environment. now we get them from browsing google drive folders.
 #ANALYTICS_FOLDER = os.environ['ANALYTICS_FOLDER']
 
-# 1-File: MESSAGES_BY_DAY
 print('------> 1-File: MESSAGES_BY_DAY')
 df_by_days = pd.crosstab(df.date, df.classification)
 df_by_days['NEG'] = df_by_days['NEG'].astype(np.float64)
@@ -690,7 +678,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = df_by_days
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 2-File: MESSAGES_LAST_7_DAYS
 print('------> 2-File: MESSAGES_LAST_7_DAYS')
 df_last_7_days = df_by_days.tail(7)
 
@@ -703,7 +690,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = df_last_7_days
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 3-File: MESSAGES_BY_WEEK
 print('------> 3-File: MESSAGES_BY_WEEK')
 df_by_days['date'] =  df_by_days['date'].apply(pd.to_datetime)
 df_by_days["week"] = df_by_days.date.dt.isocalendar().week.astype(str)
@@ -741,7 +727,6 @@ class_by_channel['POS'] = class_by_channel['POS'].astype(np.float64)
 POS.reset_index(inplace=True)
 NEG.reset_index(inplace=True)
 
-# positives
 print('------> 4-File: MOST_POSS_CHANNE')
 scopes = [URL_MOST_POSS_CHANNEL, ANALYTICS_FOLDER]
 credentials = Credentials.from_service_account_info(service_account_info, scopes=scopes)
@@ -752,7 +737,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = POS
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# negatives
 print('------> 5-File: MOST_NEG_CHANNE')
 scopes = [URL_MOST_NEG_CHANNEL, ANALYTICS_FOLDER]
 credentials = Credentials.from_service_account_info(service_account_info, scopes=scopes)
@@ -763,7 +747,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = NEG
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 6-File: MESSAGES_BY_CHANNEL
 print('------> 6-File: MESSAGES_BY_CHANNEL')
 dummy=pd.get_dummies(df['classification'])
 df_dummy = pd.concat([df,dummy],axis=1)
@@ -782,7 +765,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = df_by_channels
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 7-File: NOTE_GLOBAL_POLARITY
 print('------> 7-File: NOTE_GLOBAL_POLARITY')
 index_polarity=translated['polarity'].mean().round(2)
 index_subjectivity=translated['subjectivity'].mean().round(2)
@@ -797,7 +779,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet, 1
 your_dataframe = global_indices
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 8-File: TOP_5_REACTIONS
 print('------> 8-File: TOP_5_REACTIONS')
 important_cols= ['channel_name','reaction','quantity']
 new_react=table_reactions[important_cols]
@@ -835,7 +816,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = df_by_rections
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 9-File: TOP_5_EMOJIS
 print('------> 9-File: TOP_5_EMOJIS')
 important_cols= ['channel_name','emoji','quantity']
 new_emo=table_emojis[important_cols]
@@ -873,7 +853,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = df_by_emojis
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 10-File: TOP_10_WORDS
 print('------> 10-File: TOP_10_WORDS')
 scopes = [URL_TOP_10_WORDS , ANALYTICS_FOLDER]
 credentials = Credentials.from_service_account_info(service_account_info, scopes=scopes)
@@ -884,7 +863,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = GLOBAL_frequency
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 11-File: TOP_10_POSITIVE
 print('------> 11-File: TOP_10_POSITIVE')
 scopes = [URL_TOP_10_POSITIVE, ANALYTICS_FOLDER]
 credentials = Credentials.from_service_account_info(service_account_info, scopes=scopes)
@@ -895,7 +873,6 @@ worksheet = sh.get_worksheet(0) #-> 0 - first sheet
 your_dataframe = POS_frequency
 set_with_dataframe(worksheet, your_dataframe) # EXPORTS YOUR DATAFRAME TO THE GOOGLE SHEET
 
-# 12-File: TOP_10_NEGATIVE
 print('------> 12-File: TOP_10_NEGATIVE')
 scopes = [URL_TOP_10_NEGATIVE,ANALYTICS_FOLDER]
 credentials = Credentials.from_service_account_info(service_account_info, scopes=scopes)
