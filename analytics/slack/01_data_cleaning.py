@@ -1,7 +1,7 @@
 # SLACK - BOT: TeamPulse V 1.0
-# Data analysis process: 01_Cleaning
+# Proceso de análisis de datos: 01_Cleaning
 
-# Import necessary libraries
+# Importación de librerías necesarias
 import pandas as pd
 import numpy as np
 from textblob import TextBlob
@@ -21,12 +21,11 @@ print('Inicia el proceso de Limpieza y transformación de datos (#01)')
 print('-------------------------------------------------------------')
 
 print('PASO 1: Cargamos las variables de entorno')
-# from the environment
 CLIENT = os.getenv('CLIENT_NAME')
 print('------> CLIENTE:', CLIENT)
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-# Create s3 object (This is how we access non public buckets and objets, i.e. files)
+# Creación del objeto s3 
 s3 = boto3.resource('s3', aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
 
 print('PASO 2: Obtenición del dataset de mensajes')
