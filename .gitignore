@@ -1,0 +1,33 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+# extra functions 
+/quitados de github
+
+# Jupyter NB Checkpoints
+**/*.ipynb
+**/.ipynb_checkpoints
+**/.csv
+
+## Server
+
+# dependencies
+/server/node_modules
+/server/.env.development
+/client/.env.development
+
+# Logs
+/server/logs/*
+
+# Testing
+/server/coverage
+
+## Client
+
+# dependencies
+/client/node_modules
+
+# testing
+/client/coverage
+
+# production
+/client/build

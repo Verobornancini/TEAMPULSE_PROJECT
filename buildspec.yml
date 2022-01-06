@@ -1,0 +1,33 @@
+version: 0.2
+
+phases: 
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 280035946601.dkr.ecr.us-east-1.amazonaws.com
+  build: 
+    commands: 
+      - "echo Build started on `date`"
+      - "echo Building analytics Docker image..."
+      - cd analytics
+      - "docker build -t 280035946601.dkr.ecr.us-east-1.amazonaws.com/analytics ."
+      - "echo Building bot-slack Docker image..."
+      - cd ../bot-slack
+      - "docker build -t 280035946601.dkr.ecr.us-east-1.amazonaws.com/bot-slack ."
+      - "echo Building server Docker image..."
+      - cd ../server
+      - "docker build -t 280035946601.dkr.ecr.us-east-1.amazonaws.com/server ."
+      - "echo Building client Docker image..."
+      - cd ../client
+      - "docker build -t 280035946601.dkr.ecr.us-east-1.amazonaws.com/client ."
+  post_build: 
+    commands: 
+      - "echo Build completed on `date`"
+      - "echo Pushing analytics Docker image..."
+      - "docker push 280035946601.dkr.ecr.us-east-1.amazonaws.com/analytics"
+      - "echo Pushing bot-slack Docker image..."
+      - "docker push 280035946601.dkr.ecr.us-east-1.amazonaws.com/bot-slack"
+      - "echo Pushing server Docker image..."
+      - "docker push 280035946601.dkr.ecr.us-east-1.amazonaws.com/server"
+      - "echo Pushing client Docker image..."
+      - "docker push 280035946601.dkr.ecr.us-east-1.amazonaws.com/client"

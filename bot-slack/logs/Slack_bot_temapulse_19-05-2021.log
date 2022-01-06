@@ -1,0 +1,18 @@
+19/05/2021 07:04:23 AM INFO -------------------------------------------------------------
+19/05/2021 07:04:23 AM INFO SLACK BOT TEAMPULSE
+19/05/2021 07:04:23 AM INFO -------------------------------------------------------------
+19/05/2021 07:04:23 AM INFO STEP 1: Import required libraries
+19/05/2021 07:04:24 AM INFO STEP 2: Import secrets from AWS Secret_Manager
+19/05/2021 07:04:24 AM INFO ---> CLIENTE= bitlogic
+19/05/2021 07:04:24 AM INFO Found credentials in shared credentials file: ~/.aws/credentials
+19/05/2021 07:04:26 AM ERROR ---> The following error has occurred= An error occurred (AccessDeniedException) when calling the GetSecretValue operation: User: arn:aws:iam::517144409734:user/veronica.bornancini is not authorized to perform: secretsmanager:GetSecretValue on resource: slack_bitlogic
+19/05/2021 07:04:26 AM INFO STEP 3: Definition of connection parameters to access storage data
+19/05/2021 07:04:26 AM INFO ---> From .json file created whith Secrets Manager client for slack tokens
+19/05/2021 07:04:26 AM ERROR ---> The following error has occurred= Expecting value: line 1 column 1 (char 0)
+19/05/2021 07:04:26 AM INFO STEP 4: Set conection to Slack and AWS s3 bucket
+19/05/2021 07:04:26 AM INFO Create a slack client instance
+19/05/2021 07:04:26 AM ERROR ---> The following error has occurred= name 'SLACK_BOT_TOKEN' is not defined
+19/05/2021 07:04:26 AM INFO STEP 5: Create the Channel.csv file
+19/05/2021 07:04:26 AM ERROR ---> The following error has occurred= name 's3' is not defined
+19/05/2021 07:04:26 AM INFO STEP 6: Channel list iteration and message download
+19/05/2021 07:04:26 AM ERROR ---> The following error has occurred= name 'slack_client' is not defined
