@@ -16,37 +16,32 @@ logger.setLevel(20)
 
 #############################################################################################
 
-try:
-    logging.info('-------------------------------------------------------------')
-    logging.info('SLACK BOT TEAMPULSE')
-    print('SLACK BOT TEAMPULSE')
-    logging.info('-------------------------------------------------------------')
-    logging.info('STEP 1: Import required libraries')
-    print('STEP 1: Import required libraries')
-    from slackeventsapi import SlackEventAdapter
-    from slack import WebClient
-    from datetime import datetime, timedelta 
-    import time
-    import pandas as pd
-    import numpy as np
-    import json
-    import sys 
-    import os
-    from pathlib import Path
-    from dotenv import load_dotenv
-    import boto3
-    import base64
-    from botocore.exceptions import ClientError
-    import json
-except Exception as e: 
-    logging.error(f'---> The following error has occurred= {e}')
+logging.info('-------------------------------------------------------------')
+logging.info('SLACK BOT TEAMPULSE')
+logging.info('-------------------------------------------------------------')
+
+logging.info('STEP 1: Import required libraries')
+from slackeventsapi import SlackEventAdapter
+from slack import WebClient
+from datetime import datetime, timedelta 
+import time
+import pandas as pd
+import numpy as np
+import json
+import sys 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+import boto3
+import base64
+from botocore.exceptions import ClientError
+import json
 
 try:
     logging.info('STEP 2: Import secrets from AWS Secret_Manager')
-    print('STEP 2: Import own developed library')
     #CLIENT = os.getenv('CLIENT_NAME')
     secret=''    
-    CLIENT = '' # set the client name before run the script
+    CLIENT = '' # set the client name before running the script
     logging.info(f'---> CLIENTE= {CLIENT}')
     print(f'---> CLIENTE= {CLIENT}')
     secret_name = f'slack_{CLIENT}'
@@ -63,7 +58,6 @@ except Exception as e:
 
 try:
     logging.info('STEP 3: Definition of connection parameters to access storage data')
-    print('STEP 3: Definition of connection parameters to access storage data')
     logging.info('---> From .json file created whith Secrets Manager client for slack tokens')
     secret = json.loads(secret) # returns the secret as dictionary 
     AWS_ACCESS_KEY_ID = secret['AWS_ACCESS_KEY_ID']
@@ -76,7 +70,6 @@ except Exception as e:
     
 try:    
     logging.info('STEP 4: Set conection to Slack and AWS s3 bucket')
-    print('STEP 4: Set conection to Slack and AWS s3 bucket')
     logging.info('Create a slack client instance')
     slack_client = WebClient(SLACK_BOT_TOKEN)
     logging.info('Create s3 object to access non public buckets and objets')
@@ -86,7 +79,6 @@ except Exception as e:
 
 try: 
     logging.info('STEP 5: Create the Channel.csv file')
-    print('STEP 5: Create the Channel.csv file')
     bucketName = f'{CLIENT}-bot'
     fileNameCh = f'{CLIENT}_channels.csv'
     s3.Bucket(bucketName).download_file(fileNameCh, fileNameCh) 
@@ -105,7 +97,6 @@ except Exception as e:
 
 try:
     logging.info('STEP 6: Channel list iteration and message download')
-    print('STEP 6: Channel list iteration and message download')
     secret = json.loads(secret) # returns the secret as dictionary 
     SLACK_BOT_TOKEN = secret['SLACK_BOT_TOKEN']
     slack_client = WebClient(SLACK_BOT_TOKEN)
@@ -130,7 +121,6 @@ try:
         oldest = 0 # Start of time range of messages to include in results
         
         logging.info('STEP 7: Add information to channel.csv file')
-        print('STEP 7:  Add information to channel.csv file')
         if channel_id in df_channels.index:
             # Get the full row of the channel by searching for its id
             channel_in = df_channels.loc[channel_id] 
@@ -150,7 +140,6 @@ try:
             df_channels.to_csv(fileNameCh, sep=',')
     
         logging.info('STEP 8: Message download')
-        print('STEP 8: Message download')
         while has_more == True:
             secret = json.loads(secret) # returns the secret as dictionary 
             SLACK_BOT_TOKEN = secret['SLACK_BOT_TOKEN']
@@ -192,7 +181,6 @@ try:
         df_new_history['time'] =""
         
         logging.info('STEP 9: Acquisition of historical data hosted in AWS s3 Bucket')
-        print('STEP 9: Acquisition of historical data hosted in AWS s3 Bucket')              
         fileNameMsg = f'{CLIENT}_slack_historial_de_mensajes.csv'
         s3.Bucket(bucketName).download_file(fileNameMsg, fileNameMsg)
         logging.info('---> File verification before downloading')
@@ -215,8 +203,8 @@ try:
         logging.info('STEP 10: Message history persistence in s3 bucket')
         logging.info('-------------------------------------------------------')
         logging.info("Ended process")
-        print("Ended process")
         logging.info('-------------------------------------------------------')
+        
         logging.shutdown()
         s3.Bucket(bucketName).upload_file(fileNameCh, fileNameCh)
         s3.Bucket(bucketName).upload_file(fileNameMsg, fileNameMsg)
